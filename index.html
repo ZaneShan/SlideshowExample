@@ -9,12 +9,69 @@
     <script>
         class Intro extends Phaser.Scene {
             constructor() {
-                super('intro');
+                super('studio name');
+            }
+            preload() {
+                this.load.image('jest', 'jest.png');
+                this.load.audio('honk', 'honkhonk.mp3');
             }
             create() {
-                this.add.text(10,10,"click to begin");
+                this.jester = this.add.text(290,270,"Jester", 
+                {
+                    font: "40px Times New Roman",
+                    color: "#C31515",
+                    alpha: 0,
+                });
+                this.games = this.add.text(410,270,"Games",
+                {
+                    font: "40px Times New Roman",
+                    color: "#C31515",
+                    alpha: 0, 
+                });
+                this.jest = this.add.image(
+                    400,//x
+                    800,//y
+                    'jest',//imagename
+                )
+                this.jest.setScale(0.4)
+                this.cameras.main.fadeIn(3000, 0, 0, 0)
 
-                this.input.on('pointerdown', () => this.scene.start('body'));
+                this.time.delayedCall(5000, () => {
+                    this.sound.add('honk', {
+                        volume: 0.7, // Sets the volume of the sound, from 0 to 1
+                        loop: false, // Loops the sound when it finishes
+                        rate: 1, 
+                    }).play();
+
+                    this.tweens.add({
+                    targets: this.jester,
+                    x: -1000,
+                    duration: 3000,
+                    ease: "Linear",
+                    });
+
+                    this.tweens.add({
+                    targets: this.games,
+                    x: 1000,
+                    duration: 1500,
+                    ease: "Linear",
+                    });
+
+                    this.tweens.add({
+                    targets: this.jest,
+                    y: 300,
+                    duration: 1000,
+                    ease: "Linear",
+                    });
+                    
+                    this.time.delayedCall(2000, () => {
+                        this.cameras.main.fadeOut(2000, 0, 0, 0);
+                    })
+                });
+
+                this.cameras.main.on('camerafadeoutcomplete', () => {
+                    this.scene.start('body');
+                });
             }
         }
 
@@ -22,15 +79,164 @@
             constructor() {
                 super('body');
             }
+            preload() {
+                this.load.image('title', 'title.png');
+                this.load.image('skull', 'skull.png');
+                this.load.audio('ambience', 'ambience.mp3');
+            }
             create() {
-                this.add.text(10,10,"body scene");
+                this.sound.add('ambience', {
+                        volume: 0.7, // Sets the volume of the sound, from 0 to 1
+                        loop: true, // Loops the sound when it finishes
+                        rate: 1, 
+                    }).play();
+                this.cameras.main.setBackgroundColor('#FFCC00');
+                this.cameras.main.fadeIn(3000, 0, 0, 0)
+
+                this.graphics = this.add.graphics();
+                this.graphics.fillStyle(0x00000, 1); //color, opacity
+                this.graphics.fillRect(100, 0, 300, 600);
+
+                this.title  = this.add.image(
+                    -300,//x
+                    100,//y
+                    'title',//imagename
+                )
+                this.skull  = this.add.image(
+                    1000,//x
+                    300,//y
+                    'skull',//imagename
+                )
+                
+                this.start = this.add.text(-300,200,"START",
+                {
+                    font: "30px Georgia",
+                    color: "#FFFFFF",
+                });
+                this.options = this.add.text(-300,300,"OPTIONS",
+                {
+                    font: "30px Georgia",
+                    color: "#FFFFFF",
+                });
+                this.quit = this.add.text(-300,400,"QUIT",
+                {
+                    font: "30px Georgia",
+                    color: "#FFFFFF",
+                });
+                this.loading = this.add.text(-300,550,"LOADING",
+                {
+                    font: "30px Georgia",
+                    color: "#FFFFFF",
+                });
+
+                this.title.setScale(0.4)
+                this.skull.setScale(0.5)
+                this.skull.setAlpha(0.3)
+
+                this.tweens.add({
+                    targets: this.title,
+                    x: 300,
+                    duration: 1000,
+                    ease: "Linear",
+                });
+                this.time.delayedCall(1000, () => {
+                    this.tweens.add({
+                    targets: this.start,
+                    x: 100,
+                    duration: 500,
+                    ease: "Linear",
+                    });
+                    this.time.delayedCall(500, () => {
+                        this.tweens.add({
+                        targets: this.options,
+                        x: 100,
+                        duration: 500,
+                        ease: "Linear",
+                        });
+                        this.time.delayedCall(500, () => {
+                            this.tweens.add({
+                                targets: this.quit,
+                                x: 100,
+                                duration: 500,
+                                ease: "Linear",
+                            });
+                            this.time.delayedCall(500, () => {
+                                this.tweens.add({
+                                    targets: this.skull,
+                                    x: 500,
+                                    duration: 3000,
+                                    ease: "Linear",
+                                    onComplete: () => { // add onComplete callback function to set text as interactive
+                                        this.start.setInteractive();
+                                        this.start.on('pointerdown', () => { // add pointerdown event listener
+                                            this.tweens.add({
+                                                targets: [this.title, this.start, this.options, this.quit, this.skull],
+                                                x: 5000,
+                                                duration: 2000,
+                                                ease: "Linear",
+                                            });
+                                            this.tweens.add({
+                                                targets: this.loading,
+                                                x: 600,
+                                                duration: 2000,
+                                                ease: "Linear",
+                                            });
+
+                                            this.time.delayedCall(5000, () => {
+                                                this.cameras.main.fadeOut(2000, 0, 0, 0);
+                                            })
+                                            this.cameras.main.on('camerafadeoutcomplete', () => {
+                                                this.scene.start('Game');
+                                            });
+                                        });
+                                    }
+                                    
+                                });
+                            });
+                        });
+                    });
+                });
+            }
+        }
+
+        class Game extends Phaser.Scene {
+            constructor() {
+                super('Game');
+            }
+
+            preload() {
+            }
+
+            create() {
+                this.cameras.main.setBackgroundColor('#FFCC00');
+                this.cameras.main.fadeIn(3000, 0, 0, 0)
+
+                this.graphics = this.add.graphics();
+                this.graphics.fillStyle(0x00000, 1); //color, opacity
+                this.graphics.fillRect(0, 0, 500, 600);
+
+                this.save = this.add.text(-300,200,"How will you save this world?",
+                {
+                    font: "30px Georgia",
+                    color: "#FFFFFF",
+                    alpha: 0,
+                });
+
+                this.time.delayedCall(1000, () => {
+                    this.tweens.add({
+                    targets: this.save,
+                    alpha: 1,
+                    duration: 500,
+                    ease: "Linear",
+                    });
+                });
             }
         }
 
         new Phaser.Game ({
-            width: 640,
-            height: 480,
-            scene: [Intro, Body],
+            width: 800,
+            height: 600,
+            scene: [Intro, Body, Game],
         });
     </script>
 </head>
